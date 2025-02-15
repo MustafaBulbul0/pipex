@@ -1,65 +1,88 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/wait.h>
+#include "pipex.h"
 
+static t_pipe	*init_struct(t_pipe *ft_pipex ,char **argv);
+static void		first_command(t_pipe *pipex);
+static void		second_command(t_pipe *ft_pipex);
+static void	shut_pro_err(t_pipe *ft_pipex);
 
 int main(int argc, char **argv, char **envp)
 {
-    char *exec_args[4];
-    int fd_pipe[2];
-    int in_fd;
-    int out_fd;
-    long pid;
-    long pid2;
+	t_pipe *ft_pipex;
 
-    if ((argc != 5) || (pipe(fd_pipe) == -1))
-        exit (1);
-    in_fd = open(argv[1], O_RDONLY | O_CREAT, 0777);
-    out_fd = open(argv[4], O_WRONLY | O_CREAT, 0777);
-    if (out_fd < 0 || in_fd < 0) 
-    exit (1); 
-    exec_args[0] = "/bin/sh";
-    exec_args[1] = "-c";
-    exec_args[2] = argv[2];
-    exec_args[3] = NULL;
-    
-    pid = fork();
+	if (argc != 5)
+		exit(2);
+	ft_pipex = (t_pipe *)malloc(sizeof(t_pipe));
+	if (!ft_pipex)
+		exit(STDERR_FILENO);
+	ft_pipex = init_struct(ft_pipex, argv);
+	ft_pipex->envp = envp;
+	ft_pipex->pid1 = fork();
+	if (ft_pipex->pid1 < 0)
+		shut_pro_err(ft_pipex);
+	else if (ft_pipex->pid1 == 0)
+		first_command(ft_pipex);
+	ft_pipex->pid2 = fork();
+	ft_pipex->arg[2] = argv[3];
+	if (ft_pipex->pid2 < 0)
+		shut_pro_err(ft_pipex);
+	else if (ft_pipex->pid2 == 0)
+		second_command(ft_pipex);
+	wait(NULL);
+	return (0);
+}
 
-    if (pid < 0)
-        exit (1);
-    else if (pid == 0)
-    {
-        dup2(in_fd, 0);
-        dup2(fd_pipe[1], 1);
-        close(fd_pipe[0]);
-        close(fd_pipe[1]);
-        close(in_fd);
-        close(out_fd);
+static t_pipe	*init_struct(t_pipe *ft_pipex, char **argv)
+{
+	ft_pipex->in_fd = open (argv[1], O_RDONLY | O_CREAT, 0777);
+	ft_pipex->out_fd = open (argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+	if (ft_pipex->in_fd < 0 || ft_pipex->out_fd < 0)
+		shut_pro_err(ft_pipex);
+	ft_pipex->pi = pipe(ft_pipex->fd_pipe);
+	if (ft_pipex->pi == -1)
+		shut_pro_err(ft_pipex);
+	ft_pipex->arg[0] = "/bin/sh";
+	ft_pipex->arg[1] = "-c";
+	ft_pipex->arg[2] = argv[2];
+	ft_pipex->arg[3] = NULL;
+	ft_pipex->pi = pipe(ft_pipex->fd_pipe);
+	if (ft_pipex->pi == -1)
+		exit(2);
+	return (ft_pipex);
+}
 
-        if (execve(exec_args[0], exec_args, envp) == -1)
-            exit (1);
-    }
+static void	first_command(t_pipe *ft_pipex)
+{
+	dup2(ft_pipex->in_fd, 0);
+	dup2(ft_pipex->fd_pipe[1], 1);
+	close(ft_pipex->fd_pipe[0]);
+	close(ft_pipex->fd_pipe[1]);
+	close(ft_pipex->in_fd);
+	close(ft_pipex->out_fd);
+	ft_pipex->pi = execve(ft_pipex->arg[0], ft_pipex->arg, ft_pipex->envp);
+	if (ft_pipex->pi == -1)
+		exit (2);
+}
 
-    pid2 = fork();
+static void	second_command(t_pipe *ft_pipex)
+{
+	dup2(ft_pipex->fd_pipe[0],0);
+	dup2(ft_pipex->out_fd, 1);
+	close(ft_pipex->fd_pipe[0]);
+	close(ft_pipex->fd_pipe[1]);
+	close(ft_pipex->in_fd);
+	close(ft_pipex->out_fd);
+	ft_pipex->pi = execve(ft_pipex->arg[0], ft_pipex->arg, ft_pipex->envp);
+	if (ft_pipex->pi == -1)
+		exit (2);
+}
 
-    if (pid2 < 0)
-        exit (0);
-    else if (pid2 == 0)
-    {
-            dup2(fd_pipe[0],0);
-            dup2(out_fd, 1);
-            close(fd_pipe[0]);
-            close(fd_pipe[1]);
-            close(in_fd);
-            close(out_fd);
-
-            exec_args[2] = argv[3];
-        if (execve(exec_args[0], exec_args, envp) == -1)
-            exit (1);        
-    }
-    wait(NULL);
-    return (0);
+static void	shut_pro_err(t_pipe *ft_pipex)
+{
+	if (ft_pipex)
+	{
+		clear_2d_pointer(ft_pipex->arg);
+		clear_2d_pointer(ft_pipex->envp);
+		free(ft_pipex);
+	}
+	exit (2);
 }
