@@ -28,6 +28,7 @@ int main(int argc, char **argv, char **envp)
 	else if (ft_pipex->pid2 == 0)
 		second_command(ft_pipex);
 	wait(NULL);
+	free(ft_pipex);
 	return (0);
 }
 
