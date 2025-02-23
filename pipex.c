@@ -44,9 +44,6 @@ static t_pipe	*init_struct(t_pipe *ft_pipex, char **argv)
 	ft_pipex->arg[1] = "-c";
 	ft_pipex->arg[2] = argv[2];
 	ft_pipex->arg[3] = NULL;
-	ft_pipex->pi = pipe(ft_pipex->fd_pipe);
-	if (ft_pipex->pi == -1)
-		exit(2);
 	return (ft_pipex);
 }
 
