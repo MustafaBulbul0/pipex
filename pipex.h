@@ -1,6 +1,13 @@
 #ifndef PIPEX_H
 # define PIPEX_H
 
+# include <stdio.h>
+# include <stdlib.h>
+# include <unistd.h>
+# include <fcntl.h>
+# include <errno.h>
+# include <sys/wait.h>
+
 typedef struct s_pipe
 {
 	char	*arg[4];
@@ -13,13 +20,6 @@ typedef struct s_pipe
 	int		pid2;
 }	t_pipe;
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include "library/libft/libft.h"
-
+void	shut_pro_err(t_pipe *ft_pipex);
 
 #endif

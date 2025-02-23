@@ -1,13 +1,12 @@
 #include "pipex.h"
 
-static t_pipe	*init_struct(t_pipe *ft_pipex ,char **argv);
+static t_pipe	*init_struct(t_pipe *ft_pipex, char **argv);
 static void		first_command(t_pipe *pipex);
 static void		second_command(t_pipe *ft_pipex);
-static void	shut_pro_err(t_pipe *ft_pipex);
 
-int main(int argc, char **argv, char **envp)
+int	main(int argc, char **argv, char **envp)
 {
-	t_pipe *ft_pipex;
+	t_pipe	*ft_pipex;
 
 	if (argc != 5)
 		exit(2);
@@ -66,7 +65,7 @@ static void	first_command(t_pipe *ft_pipex)
 
 static void	second_command(t_pipe *ft_pipex)
 {
-	dup2(ft_pipex->fd_pipe[0],0);
+	dup2(ft_pipex->fd_pipe[0], 0);
 	dup2(ft_pipex->out_fd, 1);
 	close(ft_pipex->fd_pipe[0]);
 	close(ft_pipex->fd_pipe[1]);
@@ -75,15 +74,4 @@ static void	second_command(t_pipe *ft_pipex)
 	ft_pipex->pi = execve(ft_pipex->arg[0], ft_pipex->arg, ft_pipex->envp);
 	if (ft_pipex->pi == -1)
 		exit (2);
-}
-
-static void	shut_pro_err(t_pipe *ft_pipex)
-{
-	if (ft_pipex)
-	{
-		clear_2d_pointer(ft_pipex->arg);
-		clear_2d_pointer(ft_pipex->envp);
-		free(ft_pipex);
-	}
-	exit (2);
 }

@@ -1,25 +1,21 @@
 NAME = pipex
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -Ilibrary/libft
+CFLAGS = -Wall -Wextra -Werror
 RM = rm -rf
 
-SRCS = pipex.c
+SRCS = pipex.c \
+		free.c
 OBJS = $(SRCS:.c=.o)
-
-LIBFT = library/libft/libft.a
-LIB_DIR = library
 
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(MAKE) -C $(LIB_DIR)/libft
-	$(CC) $(CFLAGS) $(OBJS) $(LIBFT) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	$(MAKE) -C $(LIB_DIR)/libft fclean
 	$(RM) $(OBJS)
 
 fclean: clean
